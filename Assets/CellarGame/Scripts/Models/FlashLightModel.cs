@@ -9,7 +9,7 @@ namespace CellarGame
         menuName = "Models/FlashLightModel",
         order = 1
     )]
-    public sealed class FlashLightModel : Model
+    public sealed class FlashLightModel : Model<IFlashLightEntityInterface>
     {
         #region Fields
 
@@ -18,7 +18,6 @@ namespace CellarGame
         [SerializeField, Range(0.0f, 2000.0f)] private float _batteryChargeMax = 100.0f;
         [SerializeField, Range(0.01f, 1000.0f)] private float _rechargingSpeed = 2.0f;
         [SerializeField, Range(0.01f, 1000.0f)] private float _dischargingSpeed = 2.5f;
-        private Light _light;
         //private Transform _goFollow;
         //private Vector3 _followingOffset;
 
@@ -31,6 +30,7 @@ namespace CellarGame
         public float BatteryChargeAtStart => _battaryChargeAtStart;
         public float BatteryChargeCurrent { get; private set; }
         public float BatteryChargeMax => _batteryChargeMax;
+        public override Type ModelType => typeof(FlashLightModel);
 
         #endregion
 
@@ -39,7 +39,6 @@ namespace CellarGame
 
         private void Awake()
         {
-            //_light = Entity.GetComponent<Light>();
             // _goFollow = Camera.main.transform;
             // _followingOffset = Entity.Transform.position - _goFollow.position;
             BatteryChargeCurrent = _battaryChargeAtStart;
@@ -50,11 +49,6 @@ namespace CellarGame
 
 
         #region Methods
-
-        public void SetLightComponent(Light light)
-        {
-            _light = light;
-        }
 
         public void Switch(FlashLightStateType value = FlashLightStateType.None)
         {
@@ -73,14 +67,12 @@ namespace CellarGame
 
                 case FlashLightStateType.On:
                     IsEmittingLight = true;
-                    _light.enabled = true;
                     // Entity.Transform.position = _goFollow.position + _followingOffset;
                     // Entity.Transform.rotation = _goFollow.rotation;
                     break;
                 
                 case FlashLightStateType.Off:
                     IsEmittingLight = false;
-                    _light.enabled = false;
                     break;
                 
                 default:

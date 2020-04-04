@@ -3,70 +3,33 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class FlashLightSystem : System<FlashLightModel> //, IInitializable
+    public sealed class FlashLightSystem : System<FlashLightModel, IFlashLightEntityInterface>
     {
-        #region Fields
-
-        // private const string FLASH_LIGHT_MODEL_PATH = "Models/FlashLightModel";
-        // private FlashLightModel _flashLightModel = default;
-
-        #endregion
-
-
-        // #region IInitializable
-
-        // public void Initialize()
-        // {
-        //     _flashLightModel = Resources.Load<FlashLightModel>(FLASH_LIGHT_MODEL_PATH);
-        // }
-
-        // #endregion
-
-
         #region Methods
 
-        protected override void Process()
+        protected override void Process(FlashLightModel flashLightModel)
         {
-            foreach (FlashLightModel flashLightModel in _models)
+            var flashLightInterface = flashLightModel.EntityInterface;
+            
+            if(flashLightModel.IsEmittingLight)
             {
-                if(flashLightModel.IsEmittingLight)
+                if (!flashLightModel.DischargeBattery())
                 {
-                    //flashLightModel.Rotate();
-                    
-                    if (flashLightModel.DischargeBattery())
-                    {
-                    }
-                    else
-                    {
-                        flashLightModel.Switch(FlashLightStateType.Off);
-                    }
-                }
-                else
-                {
-                    if (flashLightModel.RechargeBattery())
-                    {
-                    }   
-                }
-
-                if (Input.GetKeyDown(KeyCode.F))
-                {
-                    flashLightModel.Switch();
+                    flashLightModel.Switch(FlashLightStateType.Off);
                 }
             }
-        }
+            else
+            {
+                flashLightModel.RechargeBattery();
+            }
 
-        // public void Switch()
-        // {
-        //     if (_flashLightModel.IsEmittingLight)
-        //     {
-        //         _flashLightModel.Switch(FlashLightStateType.Off);
-        //     }
-        //     else if (_flashLightModel.BatteryChargeCurrent > 0.0f)
-        //     {
-        //         _flashLightModel.Switch(FlashLightStateType.On);
-        //     }
-        //     Debug.Log("FLS Switch");
-        // }
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                flashLightModel.Switch();
+            }
+
+            flashLightInterface.Light.enabled = flashLightModel.IsEmittingLight;
+        }
 
         #endregion
     }

@@ -14,7 +14,7 @@ namespace CellarGame
         private int _layer;
         private Color _color;
         private Transform _transfom;
-        private readonly Dictionary<Type, Model> _models = new Dictionary<Type, Model>();
+        private readonly Dictionary<Type, IModel> _models = new Dictionary<Type, IModel>();
 
         #endregion
 
@@ -42,8 +42,8 @@ namespace CellarGame
         }
         public string Name
         {
-            get => Transform.name;
-            set => Transform.name = value;
+            get => _transfom.name;
+            set => _transfom.name = value;
         }
         public Color Color
         {
@@ -54,7 +54,21 @@ namespace CellarGame
                 PropagateColor(_transfom);
             }
         }
-        public Transform Transform => _transfom;
+        public Vector3 Position
+        {
+            get => _transfom.position;
+            set => _transfom.position = value;
+        }
+        public Quaternion Rotation
+        {
+            get => _transfom.rotation;
+            set => _transfom.rotation = value;
+        }
+        public Vector3 Scale
+        {
+            get => _transfom.localScale;
+            set => _transfom.localScale = value;
+        }
 
         #endregion
 
@@ -78,8 +92,6 @@ namespace CellarGame
                     _color = renderer.material.color;
                 }
             }
-            
-            //Initialize();
         }
 
         private void Start() => Initialize();
@@ -93,7 +105,26 @@ namespace CellarGame
 
         public virtual void Off() => gameObject.SetActive(false);
 
-        public T GetModel<T>() where T : Model => (T)_models[typeof(T)];
+        public TModel GetModel<TModel, TEntityInterface>()
+            where TModel : Model<TEntityInterface>
+            where TEntityInterface : class, IEntityInterface
+        {
+            return (TModel)_models[typeof(TModel)];
+        }
+
+        public TModel GetModel<TModel>()
+            where TModel : IModel
+        {
+            return (TModel)_models[typeof(TModel)];
+        }
+
+        public IModel GetModel(Type modelType)
+        {
+            IModel model = null;
+            _models.TryGetValue(modelType, out model);
+
+            return model;
+        }
 
         #endregion
 
@@ -107,25 +138,22 @@ namespace CellarGame
 
         #region Methods
 
-        public void AddModel<T>(T model = null) where T : Model
+        public void AddModel<TModel, TEntityInterface>(TModel model = null)
+            where TModel : Model<TEntityInterface>
+            where TEntityInterface : class, IEntityInterface
         {
+            if (_models.ContainsKey(typeof(TModel)))
+            {
+                return;
+            }
+
             if (model == null)
             {
-                if (!_models.ContainsKey(typeof(T)))
-                {
-                    model = ScriptableObject.CreateInstance<T>();
-                }
+                model = ScriptableObject.CreateInstance<TModel>();
             }
 
-            Type modelType = model.GetType();
-
-            if (!_models.ContainsKey(modelType))
-            {
-                model.SetOwner(this);
-                _models[modelType] = model;
-
-                WorldProcessor.RegisterModel(model);
-            }
+            model.SetOnwer(this);
+            _models[typeof(TModel)] = model;
         }
 
         private void PropagateLayer(Transform rootTransform)

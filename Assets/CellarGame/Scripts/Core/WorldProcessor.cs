@@ -1,73 +1,108 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 
 namespace CellarGame
 {
-    public sealed class WorldProcessor : MonoBehaviour, IInitializable
+    public sealed class WorldProcessor : IExecutable
     {
         #region Fields
 
-        private ISystem[] _systems;
-        private static readonly Queue<Model> _registeringModelsQueue = new Queue<Model>();
+        private readonly Dictionary<Type, ISystem> _systems = new Dictionary<Type, ISystem>();
+        private readonly Dictionary<Type, HashSet<IModel>> _models = new Dictionary<Type, HashSet<IModel>>();
 
         #endregion
 
 
-        #region UnityMethods
+        #region ClassLifeCycle
 
-        private void Start()
+        public WorldProcessor()
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Initialize();
-        }
-
-        private void Update()
-        {
-            foreach (var system in _systems)
-            {
-                system.Execute();
-            }
-        }
-
-        #endregion
-
-
-        #region IInitializable
-
-        public void Initialize()
-        {
-            _systems = new ISystem[]
-            {
+            //@NOTE Add new systems here
+            ISystem[] systems = {
                 new FlashLightSystem(),
             };
 
-            foreach (var system in _systems)
+            Type modelType;
+            foreach (ISystem system in systems)
             {
-                if (system is IInitializable initialization)
-                {
-                    initialization.Initialize();
-                }
-
-                foreach (Model model in _registeringModelsQueue)
-                {
-                    system.AddModel(model);
-                }
-
+                modelType = system.ModelType;
+                _systems[modelType] = system;
                 system.On();
             }
-
-            _registeringModelsQueue.Clear();
         }
 
+        #endregion
+
+
+        #region IExecutable
+
+        public void Execute()
+        {
+            Type modelType;
+            ISystem system;
+
+            foreach (var record in _systems)
+            {
+                modelType = record.Key;
+                system = record.Value;
+                
+                if (_models.TryGetValue(modelType, out var setOfModels))
+                {
+                    foreach (IModel model in setOfModels)
+                    {
+                        system.Process(model);
+                    }
+                }
+            }
+        }
+        
         #endregion
 
 
         #region Methods
 
-        public static void RegisterModel(Model model)
+        public void RegisterEntity(IEntity entity)
         {
-            _registeringModelsQueue.Enqueue(model);
+            IModel model;
+            foreach (Type modelType in _systems.Keys)
+            {
+                model = entity.GetModel(modelType);
+
+                if (model == null)
+                {
+                    continue;
+                }
+
+                RegisterModel(modelType, model);
+            }
+        }
+
+        public void UnregisterEntity(IEntity entity)
+        {
+            //@TODO
+            throw new NotImplementedException();
+        }
+
+        private void RegisterModel(Type modelType, IModel model)
+        {
+            if (_models.TryGetValue(modelType, out var hashSet))
+            {
+                hashSet.Add(model);
+            }
+            else
+            {
+                _models[modelType] = new HashSet<IModel>
+                {
+                    model,
+                };
+            }
+        }
+
+        private void UnregisterModel(Type modelType, IModel model)
+        {
+            //@TODO
+            throw new NotImplementedException();
         }
 
         #endregion

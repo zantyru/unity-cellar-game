@@ -1,14 +1,15 @@
-using System.Collections.Generic;
+using System;
 
 
 namespace CellarGame
 {
-    public abstract class System<T> : ISystem where T : Model
+    public abstract class System<TModel, TEntityInterface> : ISystem
+        where TModel : Model<TEntityInterface>
+        where TEntityInterface : class, IEntityInterface
     {
         #region Fields
 
         private bool _isEnabled = false;
-        protected readonly HashSet<T> _models = new HashSet<T>();
 
         #endregion
 
@@ -16,48 +17,28 @@ namespace CellarGame
         #region Properties ISystem
 
         public bool IsEnabled => _isEnabled;
+        public Type ModelType => typeof(TModel);
 
         #endregion
 
 
         #region ISystem
 
-        public void Execute()
-        {
-            if (!_isEnabled)
-            {
-                return;
-            }
-
-            Process();
-        }
-
         public virtual void On() => _isEnabled = true;
 
         public virtual void Off() => _isEnabled = false;
 
-        public bool AddModel(Model model)
+        public void Process(object boxedModel) //@REFACTORME Need use IModel
         {
-            bool result = false;
-
-            if (model is T adaptedModel)
+            if (!IsEnabled)
             {
-                result = _models.Add(adaptedModel);
+                return;
             }
 
-            return result;
-        }
-
-        public bool RemoveModel(Model model)
-        {
-            bool result = false;
-
-            if (model is T adaptedModel)
+            if (boxedModel is TModel unboxedModel)
             {
-                result = _models.Remove(adaptedModel);
+                Process(unboxedModel);
             }
-
-            return result;
         }
 
         #endregion
@@ -65,7 +46,7 @@ namespace CellarGame
 
         #region Methods
 
-        protected abstract void Process();
+        protected abstract void Process(TModel model);
 
         #endregion
     }
