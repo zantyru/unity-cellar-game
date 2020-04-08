@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class FlashLightSystem : System<FlashLightModel, IFlashLightEntityInterface>
+    public sealed class FlashLightSystem : System<FlashLightModel, ILightEntityInterface>
     {
         #region Methods
 

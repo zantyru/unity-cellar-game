@@ -9,7 +9,7 @@ namespace CellarGame
         menuName = "Models/FlashLightModel",
         order = 1
     )]
-    public sealed class FlashLightModel : Model<IFlashLightEntityInterface>
+    public sealed class FlashLightModel : Model<ILightEntityInterface>
     {
         #region Fields
 

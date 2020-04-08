@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CellarGame
 {
     [RequireComponent(typeof(Light))]
-    public sealed class FlashLightEntity : Entity, IFlashLightEntityInterface
+    public sealed class FlashLightEntity : Entity, ILightEntityInterface
     {
         #region Fields
 
@@ -35,13 +35,13 @@ namespace CellarGame
 
         public override void Initialize()
         {
-            AddModel<FlashLightModel, IFlashLightEntityInterface>();
+            AddModel<FlashLightModel, ILightEntityInterface>();
             SyncModelDataWithEntityState();
         }
 
         private void SyncModelDataWithEntityState()
         {
-            var flashLightModel = GetModel<FlashLightModel, IFlashLightEntityInterface>();
+            var flashLightModel = GetModel<FlashLightModel, ILightEntityInterface>();
 
             flashLightModel.Switch(
                 _light.enabled ? FlashLightStateType.On : FlashLightStateType.Off

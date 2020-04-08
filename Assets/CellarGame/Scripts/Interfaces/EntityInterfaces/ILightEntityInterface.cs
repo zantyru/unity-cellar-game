@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public interface IFlashLightEntityInterface : IEntityInterface
+    public interface ILightEntityInterface : IEntityInterface
     {
         Light Light { get; }
     }
