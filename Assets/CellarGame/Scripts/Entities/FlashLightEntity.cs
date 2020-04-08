@@ -36,16 +36,16 @@ namespace CellarGame
         public override void Initialize()
         {
             AddModel<FlashLightModel, IFlashLightEntityInterface>();
+            SyncModelDataWithEntityState();
+        }
 
+        private void SyncModelDataWithEntityState()
+        {
             var flashLightModel = GetModel<FlashLightModel, IFlashLightEntityInterface>();
-            if (_light.enabled)
-            {
-                flashLightModel.Switch(FlashLightStateType.On);
-            }
-            else
-            {
-                flashLightModel.Switch(FlashLightStateType.Off);
-            }
+
+            flashLightModel.Switch(
+                _light.enabled ? FlashLightStateType.On : FlashLightStateType.Off
+            );
         }
 
         #endregion
