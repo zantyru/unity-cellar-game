@@ -3,14 +3,16 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class FlashLightSystem : System<FlashLightModel, ILightEntityInterface>
+    public sealed class FlashLightSystem : System
     {
         #region Methods
 
-        protected override void Process(FlashLightModel flashLightModel)
+        protected override bool Filter(Entity entity) => entity.HasModel<FlashLightModel>();
+
+        protected override void Process(Entity entity)
         {
-            var flashLightInterface = flashLightModel.EntityInterface;
-            
+            FlashLightModel flashLightModel = entity.GetModel<FlashLightModel>();
+
             if(flashLightModel.IsEmittingLight)
             {
                 if (!flashLightModel.DischargeBattery())
@@ -23,12 +25,11 @@ namespace CellarGame
                 flashLightModel.RechargeBattery();
             }
 
+            //@TODO Create a user input system.
             if (Input.GetKeyDown(KeyCode.F))
             {
                 flashLightModel.Switch();
             }
-
-            flashLightInterface.Light.enabled = flashLightModel.IsEmittingLight;
         }
 
         #endregion

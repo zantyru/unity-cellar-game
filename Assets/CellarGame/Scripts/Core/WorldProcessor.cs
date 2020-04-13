@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-
-
 namespace CellarGame
 {
     public sealed class WorldProcessor : IExecutable
     {
         #region Fields
 
-        private readonly Dictionary<Type, ISystem> _systems = new Dictionary<Type, ISystem>();
-        private readonly Dictionary<Type, HashSet<IModel>> _models = new Dictionary<Type, HashSet<IModel>>();
+        private readonly System[] _systems;
 
         #endregion
 
@@ -19,15 +14,12 @@ namespace CellarGame
         public WorldProcessor()
         {
             //@NOTE Add new systems here
-            ISystem[] systems = {
+            _systems = new System[] {
                 new FlashLightSystem(),
             };
 
-            Type modelType;
-            foreach (ISystem system in systems)
+            foreach (System system in _systems)
             {
-                modelType = system.ModelType;
-                _systems[modelType] = system;
                 system.On();
             }
         }
@@ -39,21 +31,9 @@ namespace CellarGame
 
         public void Execute()
         {
-            Type modelType;
-            ISystem system;
-
-            foreach (var record in _systems)
+            foreach (System system in _systems)
             {
-                modelType = record.Key;
-                system = record.Value;
-                
-                if (_models.TryGetValue(modelType, out var setOfModels))
-                {
-                    foreach (IModel model in setOfModels)
-                    {
-                        system.Process(model);
-                    }
-                }
+                system.Execute();
             }
         }
         
@@ -62,47 +42,20 @@ namespace CellarGame
 
         #region Methods
 
-        public void RegisterEntity(IEntity entity)
+        public void RegisterEntity(Entity entity)
         {
-            IModel model;
-            foreach (Type modelType in _systems.Keys)
+            foreach (System system in _systems)
             {
-                model = entity.GetModel(modelType);
-
-                if (model == null)
-                {
-                    continue;
-                }
-
-                RegisterModel(modelType, model);
+                system.TryRegisterEntity(entity);
             }
         }
 
-        public void UnregisterEntity(IEntity entity)
+        public void UnregisterEntity(Entity entity)
         {
-            //@TODO
-            throw new NotImplementedException();
-        }
-
-        private void RegisterModel(Type modelType, IModel model)
-        {
-            if (_models.TryGetValue(modelType, out var hashSet))
+            foreach (System system in _systems)
             {
-                hashSet.Add(model);
+                system.TryUnregisterEntity(entity);
             }
-            else
-            {
-                _models[modelType] = new HashSet<IModel>
-                {
-                    model,
-                };
-            }
-        }
-
-        private void UnregisterModel(Type modelType, IModel model)
-        {
-            //@TODO
-            throw new NotImplementedException();
         }
 
         #endregion

@@ -34,9 +34,8 @@ namespace CellarGame
 
         #region UnityMethods
 
-        protected override void Awake()
+        public override void Initialize()
         {
-            base.Awake();
             Rigidbody = GetComponent<Rigidbody>();
             _isKinematic = Rigidbody.isKinematic;
         }

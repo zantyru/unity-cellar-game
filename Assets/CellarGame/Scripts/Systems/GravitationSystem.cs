@@ -3,29 +3,17 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class GravitationSystem : System<GravitationModel, IEntityInterface>
+    public sealed class GravitationSystem : System
     {
         #region Methods
 
-        protected override void Process(GravitationModel model)
+        protected override bool Filter(Entity entity)
         {
-            bool isGrounded;
-            Vector3 gravityForce;
-            IEntity entity;
-            
-            isGrounded = false;
-            entity = model.Entity;
-            if (entity is IHaveGroundChecker groundChecker)
-            {
-                isGrounded = groundChecker.IsGrounded;
-            }
-            //gravityForce = model.GetGravityForce(isGrounded);
+            return false;
+        }
 
-            //@DEBUG BEGIN
-            //entity.Transform.Translate(gravityForce * Time.deltaTime);
-            //MotionModel motionModel = entity.GetModel<MotionModel>();
-            //motionModel.Velocity += gravityForce;
-            //@DEBUG END
+        protected override void Process(Entity entity)
+        {
             
         }
 

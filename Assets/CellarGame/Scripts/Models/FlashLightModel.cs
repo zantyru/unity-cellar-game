@@ -4,22 +4,15 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    [CreateAssetMenu(
-        fileName = "FlashLightModel",
-        menuName = "Models/FlashLightModel",
-        order = 1
-    )]
-    public sealed class FlashLightModel : Model<ILightEntityInterface>
+    public sealed class FlashLightModel : Model
     {
         #region Fields
 
-        //[SerializeField, Range(0.0f, 100.0f)] private float _followingSpeed = 11.0f;
-        [SerializeField, Range(0.0f, 2000.0f)] private float _battaryChargeAtStart = 50.0f;
-        [SerializeField, Range(0.0f, 2000.0f)] private float _batteryChargeMax = 100.0f;
-        [SerializeField, Range(0.01f, 1000.0f)] private float _rechargingSpeed = 2.0f;
-        [SerializeField, Range(0.01f, 1000.0f)] private float _dischargingSpeed = 2.5f;
-        //private Transform _goFollow;
-        //private Vector3 _followingOffset;
+        private float _battaryChargeAtStart = 50.0f;
+        private float _batteryChargeMax = 100.0f;
+        private float _rechargingSpeed = 2.0f;
+        private float _dischargingSpeed = 2.5f;
+        private Light _light;
 
         #endregion
 
@@ -30,19 +23,39 @@ namespace CellarGame
         public float BatteryChargeAtStart => _battaryChargeAtStart;
         public float BatteryChargeCurrent { get; private set; }
         public float BatteryChargeMax => _batteryChargeMax;
-        public override Type ModelType => typeof(FlashLightModel);
 
         #endregion
 
 
-        #region UnityMethods
-
-        private void Awake()
+        #region ClassLifeCycle
+        
+        public FlashLightModel(Entity entity) : base(entity)
         {
-            // _goFollow = Camera.main.transform;
-            // _followingOffset = Entity.Transform.position - _goFollow.position;
+            _light = Entity.FetchComponent<Light>(out bool isJustCreated);
+
+            if (isJustCreated)
+            {
+                //@REFACTORME Move this data to ScriptableObject
+                _light.enabled = false;
+                _light.type = LightType.Spot;
+                _light.range = 10.0f;
+                _light.spotAngle = 30.0f;
+                _light.color = new Color(1.0f, 0.924f, 0.651f);
+                _light.lightmapBakeType = LightmapBakeType.Realtime;
+                _light.intensity = 1.0f;
+                _light.bounceIntensity = 0.0f;
+                _light.shadows = LightShadows.Soft;
+                _light.shadowStrength = 1.0f;
+                _light.shadowResolution = UnityEngine.Rendering.LightShadowResolution.FromQualitySettings;
+                _light.shadowBias = 0.05f;
+                _light.shadowNormalBias = 0.4f;
+                _light.shadowNearPlane = 0.2f;
+                _light.renderMode = LightRenderMode.Auto;
+                _light.cullingMask = LayerMask.NameToLayer("Everything");
+            }
+            
             BatteryChargeCurrent = _battaryChargeAtStart;
-            IsEmittingLight = false;
+            IsEmittingLight = _light.enabled;
         }
 
         #endregion
@@ -67,8 +80,6 @@ namespace CellarGame
 
                 case FlashLightStateType.On:
                     IsEmittingLight = true;
-                    // Entity.Transform.position = _goFollow.position + _followingOffset;
-                    // Entity.Transform.rotation = _goFollow.rotation;
                     break;
                 
                 case FlashLightStateType.Off:
@@ -78,17 +89,9 @@ namespace CellarGame
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }
-        }
 
-        // public void Rotate()
-        // {
-        //     Entity.Transform.position = _goFollow.position + _followingOffset;
-        //     Entity.Transform.rotation = Quaternion.Lerp(
-        //         Entity.Transform.rotation,
-        //         _goFollow.rotation,
-        //         _followingSpeed * Time.deltaTime
-        //     );
-        // }
+            _light.enabled = IsEmittingLight;
+        }
 
         public bool DischargeBattery()
         {

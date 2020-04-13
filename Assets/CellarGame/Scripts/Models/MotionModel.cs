@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class MotionModel : Model<IEntityInterface>
+    public sealed class MotionModel : Model
     {
         #region Fields
 
@@ -13,6 +13,10 @@ namespace CellarGame
         #endregion
 
 
-        public override Type ModelType => typeof(MotionModel); //@DEBUG
+        #region ClassLifeCycle
+        
+        public MotionModel(Entity entity) : base(entity) { }
+
+        #endregion
     }
 }

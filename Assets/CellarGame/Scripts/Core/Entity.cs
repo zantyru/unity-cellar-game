@@ -5,23 +5,28 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public abstract class Entity : MonoBehaviour, IEntity, IInitializable
+    public abstract class Entity : MonoBehaviour, IInitializable, ICleanUpable, IHavePowerSwitch
     {
         #region Fields
 
-        private bool _isEnabled;
         private bool _isVisible;
         private int _layer;
         private Color _color;
         private Transform _transfom;
-        private readonly Dictionary<Type, IModel> _models = new Dictionary<Type, IModel>();
+        private readonly Dictionary<Type, Model> _models = new Dictionary<Type, Model>();
 
         #endregion
 
 
-        #region Properties IEntity
+        #region Properties IHavePowerSwitch
 
-        public bool IsEnabled => _isEnabled;
+        public bool IsEnabled => gameObject.activeSelf;
+
+        #endregion
+
+
+        #region Properties
+
         public bool IsVisible
         {
             get => _isVisible;
@@ -75,12 +80,11 @@ namespace CellarGame
 
         #region UnityMethods
 
-        protected virtual void Awake()
+        private void Awake()
         {
             _transfom = GetComponent<Transform>();
             
             _layer = gameObject.layer;
-            _isEnabled = true;
             _isVisible = false;
             _color = Color.white;
 
@@ -99,32 +103,11 @@ namespace CellarGame
         #endregion
 
 
-        #region IEntity
+        #region IHavePowerSwitch
 
         public virtual void On() => gameObject.SetActive(true);
 
         public virtual void Off() => gameObject.SetActive(false);
-
-        public TModel GetModel<TModel, TEntityInterface>()
-            where TModel : Model<TEntityInterface>
-            where TEntityInterface : class, IEntityInterface
-        {
-            return (TModel)_models[typeof(TModel)];
-        }
-
-        public TModel GetModel<TModel>()
-            where TModel : IModel
-        {
-            return (TModel)_models[typeof(TModel)];
-        }
-
-        public IModel GetModel(Type modelType)
-        {
-            IModel model = null;
-            _models.TryGetValue(modelType, out model);
-
-            return model;
-        }
 
         #endregion
 
@@ -136,24 +119,71 @@ namespace CellarGame
         #endregion
 
 
+        #region ICleanUpable
+
+        public virtual void CleanUp()
+        {
+            foreach (Model model in _models.Values)
+            {
+                model.CleanUp();
+            }
+
+            _models.Clear();
+        }
+
+        #endregion
+
+
         #region Methods
 
-        public void AddModel<TModel, TEntityInterface>(TModel model = null)
-            where TModel : Model<TEntityInterface>
-            where TEntityInterface : class, IEntityInterface
+        public bool AddModel<T>(T model)
+            where T : Model
         {
-            if (_models.ContainsKey(typeof(TModel)))
+            if ((model == null) || (_models.ContainsKey(typeof(T))))
             {
-                return;
+                return false;
             }
 
-            if (model == null)
+            _models[typeof(T)] = model;
+
+            return true;
+        }
+
+        public bool RemoveModel<T>()
+            where T : Model
+        {
+            return _models.Remove(typeof(T));
+        }
+
+        public bool HasModel<T>()
+            where T : Model
+        {
+            return _models.ContainsKey(typeof(T));
+        }
+
+        public T GetModel<T>()
+            where T : Model
+        {
+            return (T)_models[typeof(T)];
+        }
+
+        public T FetchComponent<T>(out bool isJustCreated)
+            where T : UnityEngine.Component
+        {
+            T component;
+            isJustCreated = false;
+
+            if (TryGetComponent<T>(out var foundComponent))
             {
-                model = ScriptableObject.CreateInstance<TModel>();
+                component = foundComponent;
+            }
+            else
+            {
+                component = gameObject.AddComponent<T>();
+                isJustCreated = true;
             }
 
-            model.SetOnwer(this);
-            _models[typeof(TModel)] = model;
+            return component;
         }
 
         private void PropagateLayer(Transform rootTransform)

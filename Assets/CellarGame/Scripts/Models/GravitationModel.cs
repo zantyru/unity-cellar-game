@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class GravitationModel : Model<IEntityInterface>
+    public sealed class GravitationModel : Model
     {
         #region Fields
 
@@ -21,7 +21,13 @@ namespace CellarGame
         public float MagnitudeGrowSpeed => _magnitudeGrowSpeed;
         public float MagnitudeIfGrounded => _magnitudeIfGrounded;
         public Vector3 Direction => _direction;
-        public override Type ModelType => typeof(GravitationModel);
+
+        #endregion
+
+
+        #region ClassLifeCycle
+        
+        public GravitationModel(Entity entity) : base(entity) { }
 
         #endregion
 

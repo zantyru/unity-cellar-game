@@ -1,24 +1,24 @@
-using System;
-using UnityEngine;
-
-
 namespace CellarGame
 {
-    public abstract class Model<TEntityInterface> : ScriptableObject, IModel
-        where TEntityInterface : class, IEntityInterface
+    public class Model : ICleanUpable
     {
-        #region Properties
+        #region Fields
 
-        public abstract Type ModelType { get; }
-        public IEntity Entity { get; private set; } = default;
-        public TEntityInterface EntityInterface { get => Entity as TEntityInterface; }
+        public readonly Entity Entity = default;
 
         #endregion
 
 
-        #region Methods
+        #region ClassLifeCycle
 
-        public void SetOnwer(IEntity entity) => Entity = entity;
+        protected Model(Entity entity) => Entity = entity;
+
+        #endregion
+
+
+        #region ICleanUpable
+
+        public virtual void CleanUp() { }
 
         #endregion
     }

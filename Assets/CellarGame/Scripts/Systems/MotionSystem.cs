@@ -3,11 +3,16 @@ using UnityEngine;
 
 namespace CellarGame
 {
-    public sealed class MotionSystem : System<MotionModel, IEntityInterface>
+    public sealed class MotionSystem : System
     {
         #region Methods
 
-        protected override void Process(MotionModel model)
+        protected override bool Filter(Entity entity)
+        {
+            return false;
+        }
+
+        protected override void Process(Entity entity)
         {
             // IEntity entity;
             
