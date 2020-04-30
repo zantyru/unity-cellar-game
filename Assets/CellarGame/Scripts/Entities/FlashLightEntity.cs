@@ -2,13 +2,10 @@ namespace CellarGame
 {
     public sealed class FlashLightEntity : Entity
     {
-        #region Methods
-
-        public override void Initialize()
+        public override void Initialize(World world)
         {
-            AddModel<FlashLightModel>(new FlashLightModel(this));
+            base.Initialize(world);
+            _world.AssociateArchetypeWithEntity(this, typeof(FlashLightArchetype));
         }
-
-        #endregion
     }
 }

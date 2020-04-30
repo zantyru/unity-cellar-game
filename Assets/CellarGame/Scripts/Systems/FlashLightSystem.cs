@@ -1,35 +1,80 @@
-using UnityEngine;
+using System;
 
 
 namespace CellarGame
 {
-    public sealed class FlashLightSystem : System
+    public sealed class FlashLightSystem : ISystem
     {
-        #region Methods
+        #region Fields
 
-        protected override bool Filter(Entity entity) => entity.HasModel<FlashLightModel>();
+        private LightBulbMechanikaHandler _lightBulbHandler = default;
+        private EnergyBankMechanikaHandler _energyBankHandler = default;
+        
+        #endregion
 
-        protected override void Process(Entity entity)
+
+        #region Properties ISystem
+
+        public Type ArchetypeType { get => typeof(FlashLightArchetype); }
+
+        #endregion
+
+
+        #region ISystem
+
+        public void Initialize(Archetype archetype)
         {
-            FlashLightModel flashLightModel = entity.GetModel<FlashLightModel>();
+            FlashLightArchetype flashLight = (FlashLightArchetype)archetype;
+            _lightBulbHandler = (LightBulbMechanikaHandler)flashLight.GetMechanikaHandler(typeof(LightBulbMechanikaHandler));
+            _energyBankHandler = (EnergyBankMechanikaHandler)flashLight.GetMechanikaHandler(typeof(EnergyBankMechanikaHandler));
+        }
 
-            if(flashLightModel.IsEmittingLight)
+        public void Process(Entity entity, float deltaTime)
+        {
+            LightBulbMechanikaData lightBulb = _lightBulbHandler.Handle(entity);
+            EnergyBankMechanikaData energyBank = _energyBankHandler.Handle(entity);
+
+            if(lightBulb.IsEmittingLight)
             {
-                if (!flashLightModel.DischargeBattery())
+                
+                if (!_energyBankHandler.Discharge(energyBank, deltaTime))
                 {
-                    flashLightModel.Switch(FlashLightStateType.Off);
+                    lightBulb.IsEmittingLight = false;
                 }
             }
             else
             {
-                flashLightModel.RechargeBattery();
+                _energyBankHandler.Recharge(energyBank, deltaTime);
             }
 
-            //@TODO Create a user input system.
-            if (Input.GetKeyDown(KeyCode.F))
+            //@TODO Input system
+            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.F))
             {
-                flashLightModel.Switch();
+                SwitchLightBulb(lightBulb);
             }
+        }
+
+        #endregion
+
+
+        #region Methods
+
+        private void SwitchLightBulb(LightBulbMechanikaData lightBulb)
+        {
+            lightBulb.IsEmittingLight = !lightBulb.IsEmittingLight;
+            
+            /*
+            switch (lightBulb.IsEmittingLight)
+            {
+                case true:
+                    lightBulb.IsEmittingLight = false;
+                    break;
+
+                case false:
+                    lightBulb.IsEmittingLight = true;
+                    break;
+            }
+            */
         }
 
         #endregion
