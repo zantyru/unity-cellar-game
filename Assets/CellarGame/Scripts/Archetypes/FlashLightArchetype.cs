@@ -1,20 +1,19 @@
+using Sadako;
+
+
 namespace CellarGame
 {
+    using FlashLightInteractionKontroller = InteractionDataKontroller<FlashLightInteractionType>;
+
     public sealed class FlashLightArchetype : Archetype
     {
-        #region ClassLifeCycle
-
-        public FlashLightArchetype(World world) : base(world) { }
-
-        #endregion
-
-
         #region Methods
 
         public override void Initialize()
         {
-            AssociateMechanikaHandler(typeof(LightBulbMechanikaHandler));
-            AssociateMechanikaHandler(typeof(EnergyBankMechanikaHandler));
+            AssociateDataKontroller<LightBulbDataKontroller>(new LightBulbDataKontroller(gameObject));
+            AssociateDataKontroller<EnergyBankDataKontroller>(new EnergyBankDataKontroller(gameObject));
+            AssociateDataKontroller<FlashLightInteractionKontroller>(new FlashLightInteractionKontroller(gameObject));
         }
 
         #endregion
